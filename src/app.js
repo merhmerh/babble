@@ -14,9 +14,19 @@ const body = document.body
 init()
 
 async function init() {
-
+    const appConfig = await ipc.promise('getConfig')
+    console.log(appConfig);
 
     body.insertAdjacentHTML('beforeend', login_html)
+
+    document.getElementById('email').value = appConfig.email
+
+    if (appConfig.password) {
+        const decryptedPassword = await ipc.promise('decrypt', appConfig.password)
+        document.getElementById('password').value = decryptedPassword
+    }
+
+
 
     document.getElementById('version').textContent = packageJSON.version
 
@@ -51,12 +61,24 @@ async function init() {
             console.log(user);
             body.replaceChildren()
             body.insertAdjacentHTML('beforeend', chat_html)
+
             startChat(user)
+            const hashedPassword = await ipc.promise('encrypt', password)
+
+            saveConfig({
+                email: email,
+                password: hashedPassword
+            }, appConfig)
+
+
         }
     })
 
     // document.getElementById('login').click()
+}
 
-
-
+function saveConfig(obj, appConfig) {
+    const newConfig = Object.assign(appConfig, obj)
+    console.log(newConfig);
+    ipc.send('updateConfig', newConfig)
 }

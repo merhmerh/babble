@@ -1,7 +1,9 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, dialog } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, shell } = require('electron')
 const path = require('path')
 const { autoUpdater } = require('electron-updater')
-
+const fs = require('fs')
+require('dotenv').config()
+const crypto = require('crypto');
 
 const isDev = (() => {
     return process.env.NODE_ENV == 'dev' ? true : false
@@ -9,9 +11,16 @@ const isDev = (() => {
 
 console.log(`is dev env: ${isDev}`);
 
-// try {
-//     require('electron-reloader')(module);
-// } catch { }
+//create config file
+const configPath = path.join(app.getPath("userData"), "config.json")
+if (!fs.existsSync(configPath)) {
+    const data = {}
+    fs.writeFileSync(configPath, JSON.stringify(data))
+}
+
+//get config data
+const configData = JSON.parse(fs.readFileSync(configPath))
+
 
 const createWindow = () => {
     let displays = screen.getAllDisplays()
@@ -75,7 +84,6 @@ const createWindow = () => {
     // window.loadFile('page/index.html')
     window.loadURL(`file://${__dirname}/page/index.html`)
 
-
     window.webContents.on('context-menu', (event, params) => {
 
         if (params.isEditable && params.misspelledWord) {
@@ -107,6 +115,12 @@ const createWindow = () => {
 
     })
 
+    window.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url)
+        return { action: 'deny' };
+    });
+
+
     ipcMain.handle('isFocus', (event, arg) => {
         return window.isFocused() ? true : false
     })
@@ -127,6 +141,41 @@ const createWindow = () => {
     ipcMain.handle('minimizeToTray', () => {
         console.log('to tray');
         window.hide()
+    })
+
+    ipcMain.handle('getConfig', () => {
+        return configData
+    })
+
+    ipcMain.handle('updateConfig', (event, newConfig) => {
+        console.log(newConfig);
+        fs.writeFileSync(configPath, JSON.stringify(newConfig))
+    })
+
+    ipcMain.handle('decrypt', (e, string) => {
+        const [iv, hash] = string.split(':').map(part => part, 'hex')
+        const decipher = (() => {
+            try {
+                return crypto.createDecipheriv('aes-256-ctr', process.env.SECRET, Buffer.from(iv, 'hex'))
+            } catch (err) {
+                console.log('invalid passphrase');
+                return false
+            }
+        })()
+
+        if (!decipher) {
+            return ''
+        }
+
+        const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash, 'hex')), decipher.final()])
+        return decrpyted.toString()
+    })
+
+    ipcMain.handle('encrypt', (e, string) => {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv('aes-256-ctr', process.env.SECRET, iv)
+        const encrypted = Buffer.concat([cipher.update(string), cipher.final()])
+        return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
     })
 
     window.on('focus', () => window.flashFrame(false))
