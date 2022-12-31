@@ -1,0 +1,30 @@
+[
+    {
+        "type": "image",
+        "ext": [
+            "png",
+            "jpeg",
+            "jpg",
+            "gif"
+        ]
+    },
+    {
+        "type": "video",
+        "ext": [
+            "mp4"
+        ]
+    },
+    {
+        "type": "code",
+        "ext": [
+            "json",
+            "html",
+            "js",
+            "css"
+        ]
+    },
+    {
+        "type": "file",
+        "ext": []
+    }
+]

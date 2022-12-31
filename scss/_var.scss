@@ -1,0 +1,48 @@
+$material: "Material Symbols Outlined";
+$bg: #222831;
+$bg-alt: #393e46;
+
+$chat: #393e46;
+$chat-alt: #1f2325;
+
+$main: #eeeeee;
+$main-light: #aeb3b9;
+$main-lighter: #6c6f72;
+$main-alt: #222831;
+
+$grey: #575b63;
+$scrollthumb: #575b63;
+
+$accent: #4565a4;
+$red: #f45e51;
+
+input {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: $bg-alt;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    outline: none;
+    width: 100%;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    color: $main;
+    background-color: $accent;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        box-shadow: inset 0 0 100px 100px rgba($bg, 0.15);
+        // background-color: ;
+    }
+}
