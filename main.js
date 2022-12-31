@@ -1,6 +1,7 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, dialog } = require('electron')
 const path = require('path')
 const { autoUpdater } = require('electron-updater')
+
 
 const isDev = (() => {
     return process.env.NODE_ENV == 'dev' ? true : false
@@ -130,8 +131,11 @@ const createWindow = () => {
 
     window.on('focus', () => window.flashFrame(false))
 
+
     if (!isDev) {
         autoUpdater.checkForUpdatesAndNotify()
+        autoUpdater.on('checking-for-update', () => {
+        });
     }
 
     return window

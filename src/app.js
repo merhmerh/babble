@@ -29,15 +29,6 @@ async function init() {
         ipc.send('minimizeToTray')
     })
 
-
-
-    document.getElementById('email').value = 'arvinhow95@gmail.com'
-    document.getElementById('password').value = '008126'
-
-    // document.getElementById('email').value = 'ognipil@gmail.com'
-    // document.getElementById('password').value = '021113'
-
-
     document.getElementById('login').addEventListener('click', async (e) => {
         const email = document.getElementById('email').value
         const password = document.getElementById('password').value
@@ -64,7 +55,7 @@ async function init() {
         }
     })
 
-    document.getElementById('login').click()
+    // document.getElementById('login').click()
 
 
 
