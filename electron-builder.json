@@ -1,0 +1,9 @@
+{
+    "appId": "com.babble.app",
+    "win": {
+        "target": "nsis",
+        "publish": [
+            "github"
+        ]
+    }
+}

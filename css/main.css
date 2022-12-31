@@ -1,0 +1,451 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+input {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background-color: #393e46;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  outline: none;
+  width: 100%;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: #eeeeee;
+  background-color: #4565a4;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+button:hover, button:focus {
+  box-shadow: inset 0 0 100px 100px rgba(34, 40, 49, 0.15);
+}
+
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  src: url("../assets//MaterialSymbolsOutlined.woff2") format("woff");
+}
+.mso {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px; /* Preferred icon size */
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+body {
+  margin: 0;
+  background-color: #393e46;
+  color: #eeeeee;
+  font-family: "Inter";
+  font-weight: 400;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  background: #575b63;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #575b63;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none !important;
+}
+
+a[href] {
+  color: lightblue;
+  text-decoration: none;
+}
+a[href]:hover span {
+  text-decoration: underline;
+}
+
+.window_control {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  right: 0;
+  top: 0;
+  -webkit-app-region: no-drag;
+}
+.window_control .close,
+.window_control .minimize {
+  font-size: 1.2rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-variation-settings: "wght" 300;
+}
+.window_control .close:hover {
+  background-color: #d54a4a;
+}
+.window_control .minimize:hover {
+  background-color: #575b63;
+}
+
+.login_container {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  justify-content: center;
+  background-color: #222831;
+  position: relative;
+}
+.login_container .dragarea {
+  z-index: -1;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.login_container .field {
+  margin-inline: auto;
+  margin-top: 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 80%;
+  margin-top: -160px;
+}
+.login_container .field img {
+  height: 80px;
+  margin-bottom: 80px;
+}
+.login_container .field input {
+  -webkit-app-region: no-drag;
+}
+.login_container .field button {
+  -webkit-app-region: no-drag;
+  margin-top: 0.5rem;
+}
+.login_container #version {
+  padding: 1rem;
+  color: #aeb3b9;
+}
+
+header {
+  height: 80px;
+  background-color: #393e46;
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  position: relative;
+}
+header:before {
+  z-index: 1;
+  -webkit-app-region: drag;
+  position: absolute;
+  content: "";
+  width: calc(100% - 100px);
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+header .profile {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+}
+header .profile .profileinfo {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding-left: 0.5rem;
+}
+header .profile .profileinfo .profiledesc {
+  font-size: 0.875rem;
+  color: #aeb3b9;
+}
+header .profile .profilepicture {
+  height: 56px;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  overflow: hidden;
+}
+header .profile .profilepicture img {
+  width: 100%;
+  height: 100%;
+}
+header .buttons {
+  display: grid;
+  grid-template-rows: 32px 1fr;
+}
+header .buttons .function {
+  grid-row: 2;
+  display: flex;
+  margin-right: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+header .buttons .function .mso {
+  cursor: pointer;
+  color: #aeb3b9;
+  font-variation-settings: "wght" 300;
+}
+header .buttons .function .bell[data-attr=on]:after {
+  content: "\e7f4";
+  font-family: "Material Symbols Outlined";
+}
+header .buttons .function .bell[data-attr=off]:after {
+  content: "\e7f6";
+  font-family: "Material Symbols Outlined";
+  color: #f45e51;
+}
+
+main {
+  height: calc(100vh - 80px);
+  background-color: #222831;
+  background-image: url("../assets/firework.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  position: relative;
+}
+main:before {
+  position: absolute;
+  content: "";
+  background-color: rgba(34, 40, 49, 0.75);
+  width: 100%;
+  height: 100%;
+}
+main .sendarea {
+  background-color: rgba(57, 62, 70, 0.75);
+  -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+  margin: 1rem;
+  height: auto;
+  border-radius: 0.5rem;
+  position: relative;
+}
+main .sendarea .newMessageAlert {
+  position: absolute;
+  top: -40px;
+  height: 32px;
+  width: 100%;
+  background-color: rgba(69, 101, 164, 0.5);
+  border-radius: 0.25rem;
+  display: flex;
+  color: #aeb3b9;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+main .sendarea .newMessageAlert .mso {
+  font-size: 1rem;
+}
+main .sendarea .newMessageAlert:hover {
+  color: #eeeeee;
+  background-color: rgba(54, 79, 128, 0.75);
+}
+main .sendarea .attachmentarea {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px dashed rgba(87, 91, 99, 0.5);
+}
+main .sendarea .attachmentarea:empty {
+  display: none !important;
+}
+main .sendarea .attachmentarea .attachment_container {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 0.5rem;
+  background-color: #222831;
+}
+main .sendarea .attachmentarea .attachment_container:hover .overlay {
+  display: grid;
+}
+main .sendarea .attachmentarea .attachment_container .overlay {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(34, 40, 49, 0.75);
+  color: #aeb3b9;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  cursor: pointer;
+}
+main .sendarea .attachmentarea .attachment_container img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+main .sendarea .attachmentarea .attachment_container .icon {
+  height: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 6rem;
+}
+main .sendarea textarea {
+  box-sizing: border-box;
+  border: none;
+  background-color: transparent;
+  color: #eeeeee;
+  font-family: inherit;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0.5rem;
+  min-height: 56px;
+  height: 36px;
+  max-height: 400px;
+  resize: none;
+  width: 100%;
+}
+main .sendarea textarea:focus {
+  outline: none;
+}
+main .messagearea {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+  height: auto;
+  overflow-y: scroll;
+  margin-right: 4px;
+}
+main .messagearea .messagebox {
+  display: flex;
+  gap: 0.5rem;
+}
+main .messagearea .messagebox.left {
+  justify-content: flex-start;
+}
+main .messagearea .messagebox.left .message {
+  background-color: rgba(57, 62, 70, 0.85);
+}
+main .messagearea .messagebox.right {
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+}
+main .messagearea .messagebox.right .message {
+  background-color: rgba(31, 35, 37, 0.85);
+}
+main .messagearea .messagebox .message {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+  -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  max-width: 80%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+main .messagearea .messagebox .message a {
+  color: #7b9cff;
+}
+main .messagearea .messagebox .message .string {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+main .messagearea .messagebox .message .attachment {
+  display: flex;
+  justify-content: center;
+}
+main .messagearea .messagebox .message .attachment img {
+  border-radius: 0.25rem;
+  width: 350px;
+  height: auto;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+main .messagearea .messagebox .message .attachment video {
+  outline: none;
+  width: 100%;
+  min-height: 200px;
+  height: auto;
+  max-height: 300px;
+}
+main .messagearea .messagebox .message .attachment .file {
+  background-color: #222831;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  width: 100%;
+  gap: 0.5rem;
+  padding-right: 1rem;
+}
+main .messagearea .messagebox .message .attachment .file .icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  font-size: 3rem;
+  border-radius: 1rem;
+}
+main .messagearea .messagebox .message.single_img {
+  background-color: transparent !important;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+main .messagearea .messagebox .timestamp {
+  display: flex;
+  align-items: flex-end;
+  font-size: 12px;
+  color: #6c6f72;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
