@@ -14,6 +14,11 @@ import dayjs from "dayjs";
 
 export function startChat(user) {
 
+    ipc.receive('isUpdateReady', (data) => {
+        console.log(data);
+    });
+
+
     document.getElementById('win_min').addEventListener('click', (e) => {
         ipc.send('minimize')
     })

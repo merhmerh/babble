@@ -14,6 +14,8 @@ const body = document.body
 init()
 
 async function init() {
+
+
     body.insertAdjacentHTML('beforeend', login_html)
 
     document.getElementById('version').textContent = packageJSON.version

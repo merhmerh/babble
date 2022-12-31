@@ -130,21 +130,6 @@ const createWindow = () => {
 
     window.on('focus', () => window.flashFrame(false))
 
-
-    Object.defineProperty(app, 'isPackaged', {
-        get() {
-            return true;
-        }
-    });
-
-    if (isDev) {
-        autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
-        autoUpdater.checkForUpdates()
-    } else {
-
-        autoUpdater.checkForUpdatesAndNotify()
-    }
-
     return window
 }
 
@@ -163,6 +148,26 @@ app.whenReady().then(() => {
     tray.on('click', () => {
         window.show();
     })
+
+
+    setTimeout(() => {
+        if (isDev) {
+            Object.defineProperty(app, 'isPackaged', {
+                get() {
+                    return true;
+                }
+            });
+
+            autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
+            autoUpdater.checkForUpdates()
+        } else {
+            window.webContents.send('isUpdateReady', 'Checked for updates')
+            autoUpdater.checkForUpdatesAndNotify()
+        }
+    }, 2000);
+
+
+
 })
 
 
