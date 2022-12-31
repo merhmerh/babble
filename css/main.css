@@ -163,6 +163,10 @@ a[href]:hover span {
   -webkit-app-region: no-drag;
   margin-top: 0.5rem;
 }
+.login_container #version {
+  padding: 1rem;
+  color: #aeb3b9;
+}
 
 header {
   height: 80px;

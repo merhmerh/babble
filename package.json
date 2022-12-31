@@ -9,6 +9,7 @@
     "build": "webpack --mode development",
     "start": "electron .",
     "dist": "electron-builder",
+    "build:publish": "electron-builder --publish always",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "babble",

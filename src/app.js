@@ -6,6 +6,7 @@ import { startChat } from './chat'
 import { auth } from './firebase'
 import { signInWithEmailAndPassword } from "firebase/auth";
 
+const packageJSON = require('../package.json')
 
 const body = document.body
 
@@ -14,6 +15,8 @@ init()
 
 async function init() {
     body.insertAdjacentHTML('beforeend', login_html)
+
+    document.getElementById('version').textContent = packageJSON.version
 
     document.getElementById('win_min').addEventListener('click', (e) => {
         ipc.send('minimize')
