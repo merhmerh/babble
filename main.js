@@ -152,11 +152,13 @@ const createWindow = () => {
         fs.writeFileSync(configPath, JSON.stringify(newConfig))
     })
 
-    ipcMain.handle('decrypt', (e, string) => {
+    ipcMain.handle('decrypt', (e, data) => {
+        const secret = data.secret
+        const string = data.hash
         const [iv, hash] = string.split(':').map(part => part, 'hex')
         const decipher = (() => {
             try {
-                return crypto.createDecipheriv('aes-256-ctr', process.env.SECRET, Buffer.from(iv, 'hex'))
+                return crypto.createDecipheriv('aes-256-ctr', secret, Buffer.from(iv, 'hex'))
             } catch (err) {
                 console.log('invalid passphrase');
                 return false
@@ -171,9 +173,11 @@ const createWindow = () => {
         return decrpyted.toString()
     })
 
-    ipcMain.handle('encrypt', (e, string) => {
+    ipcMain.handle('encrypt', (e, data) => {
+        const secret = data.secret
+        const string = data.password
         const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipheriv('aes-256-ctr', process.env.SECRET, iv)
+        const cipher = crypto.createCipheriv('aes-256-ctr', secret, iv)
         const encrypted = Buffer.concat([cipher.update(string), cipher.final()])
         return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
     })
@@ -193,7 +197,7 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
     const window = createWindow()
-    const tray = new Tray(path.join(__dirname, 'build/icon.png'))
+    const tray = new Tray(path.join(__dirname, 'assets/icon.ico'))
 
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Open', click() { window.show() } },
@@ -205,25 +209,6 @@ app.whenReady().then(() => {
     tray.on('click', () => {
         window.show();
     })
-
-
-    // setTimeout(() => {
-    //     if (isDev) {
-    //         Object.defineProperty(app, 'isPackaged', {
-    //             get() {
-    //                 return true;
-    //             }
-    //         });
-    //         window.webContents.send('isUpdateReady', 'dev update')
-    //         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
-    //         autoUpdater.checkForUpdates()
-    //     } else {
-    //         console.log('not dev');
-    //         window.webContents.send('isUpdateReady', 'Checked for updbabbates')
-    //         autoUpdater.checkForUpdatesAndNotify()
-    //     }
-    // }, 2000);
-
 
 
 })

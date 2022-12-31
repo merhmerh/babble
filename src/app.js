@@ -4,12 +4,11 @@ import login_html from '../page/login.html'
 import { startChat } from './chat'
 
 import { auth } from './firebase'
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 
 const packageJSON = require('../package.json')
 
 const body = document.body
-
 
 init()
 
@@ -22,11 +21,12 @@ async function init() {
     document.getElementById('email').value = appConfig.email
 
     if (appConfig.password) {
-        const decryptedPassword = await ipc.promise('decrypt', appConfig.password)
+        const decryptedPassword = await ipc.promise('decrypt', {
+            hash: appConfig.password,
+            secret: process.env.SECRET
+        })
         document.getElementById('password').value = decryptedPassword
     }
-
-
 
     document.getElementById('version').textContent = packageJSON.version
 
@@ -63,7 +63,10 @@ async function init() {
             body.insertAdjacentHTML('beforeend', chat_html)
 
             startChat(user)
-            const hashedPassword = await ipc.promise('encrypt', password)
+            const hashedPassword = await ipc.promise('encrypt', {
+                password: password,
+                secret: process.env.SECRET
+            })
 
             saveConfig({
                 email: email,
