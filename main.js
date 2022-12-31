@@ -130,8 +130,19 @@ const createWindow = () => {
 
     window.on('focus', () => window.flashFrame(false))
 
+
+    Object.defineProperty(app, 'isPackaged', {
+        get() {
+            return true;
+        }
+    });
+
+    if (isDev) {
+        autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
+        autoUpdater.checkForUpdates()
+    }
     // autoUpdater.checkForUpdates()
-    autoUpdater.checkForUpdatesAndNotify()
+    // autoUpdater.checkForUpdatesAndNotify()
 
     return window
 }
