@@ -29,8 +29,8 @@ async function init() {
 
 
 
-    // document.getElementById('email').value = 'arvinhow95@gmail.com'
-    // document.getElementById('password').value = '008126'
+    document.getElementById('email').value = 'arvinhow95@gmail.com'
+    document.getElementById('password').value = '008126'
 
     // document.getElementById('email').value = 'ognipil@gmail.com'
     // document.getElementById('password').value = '021113'
@@ -62,7 +62,7 @@ async function init() {
         }
     })
 
-    // document.getElementById('login').click()
+    document.getElementById('login').click()
 
 
 

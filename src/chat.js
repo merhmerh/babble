@@ -34,6 +34,17 @@ export function startChat(user) {
         readyNotification: true,
     }
 
+    messageArea.addEventListener('scroll', (e) => {
+        const clientHeight = messageArea.clientHeight
+        const scrollTop = messageArea.scrollTop
+        const scrollHeight = messageArea.scrollHeight
+        const isBottom = scrollHeight - scrollTop - clientHeight <= 200 ? true : false
+
+        if (isBottom) {
+            sendArea.querySelector('#newMessageAlert').classList.add('hidden')
+        }
+    })
+
     setTimeout(() => {
         scrollToBottom()
     }, 10);
@@ -173,8 +184,6 @@ export function startChat(user) {
 
         document.getElementById('textarea').focus();
     });
-
-
 
     //init chat get prev messages
     const getChat = (async () => {

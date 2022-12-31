@@ -140,9 +140,10 @@ const createWindow = () => {
     if (isDev) {
         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
         autoUpdater.checkForUpdates()
+    } else {
+
+        autoUpdater.checkForUpdatesAndNotify()
     }
-    // autoUpdater.checkForUpdates()
-    // autoUpdater.checkForUpdatesAndNotify()
 
     return window
 }
