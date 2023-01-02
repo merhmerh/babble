@@ -1,0 +1,122 @@
+<div id="settings">
+
+    <div class="title">Preferences & Settings</div>
+
+    <div class="subtitle">Profile</div>
+
+    <div class="center">
+        <input id="changeProfilePictureInput" type="file" class="hidden">
+        <div id="changeProfilePicture" class="profilepicture">
+            <img src="../assets/profile.png">
+        </div>
+    </div>
+
+    <div class="field">
+        <label>Name</label>
+        <input id="name" placeholder="name">
+    </div>
+    <div class="field">
+        <label>About</label>
+        <input id="about" placeholder="about">
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="subtitle">Preferences</div>
+
+    <div class="field">
+        <label>Font</label>
+        <input id="font" placeholder="font-family" value="Inter">
+    </div>
+
+    <div class="field">
+        <label>Font Size</label>
+        <input id="fontSize" min="10" max="24" value="16" type="range" oninput="this.nextElementSibling.value = this.value">
+        <output>16</output>
+    </div>
+
+    <div class="field">
+        <label>Accent Color</label>
+        <div id="selectAccentColor" class="color-field">
+            <div id="colorPicker" class="picker hidden" acp-color="#4565a4" acp-show-hsl="no" acp-show-rgb="no" acp-show-hex="yes" acp-palette="PALETTE_MATERIAL_CHROME"></div>
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="field">
+            <label>Background</label>
+            <!-- <select id="color"></select> -->
+            <div id="select_background" class="select-option">
+                <div class="select" data-value="Color"></div>
+                <div class="dropdown hidden">
+                    <div class="option">Color</div>
+                    <div class="option">Image</div>
+                </div>
+            </div>
+        </div>
+        <div id="selectBackgroundColor" class="color-field">
+            <div id="backgroundColorPicker" class="picker hidden" acp-color="#222831" acp-show-hsl="no" acp-show-rgb="no" acp-show-hex="yes" acp-palette="PALETTE_MATERIAL_CHROME"></div>
+        </div>
+        <div id="background_image" class="hidden flex col gap-xs">
+            <div class="image">
+                <img src="../assets/placeholderbackground.svg">
+            </div>
+            <div class="field nofocus ">
+                <label>Luminousity</label>
+                <input id="background_brightness" min="0" max="100" value="50" type="range" oninput="this.nextElementSibling.value = this.value">
+                <output>0</output>
+            </div>
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="field">
+            <label>Banner</label>
+            <div id="select_banner" class="select-option">
+                <div class="select" data-value="Color"></div>
+                <div class="dropdown hidden">
+                    <div class="option">Color</div>
+                    <div class="option">Image</div>
+                </div>
+            </div>
+        </div>
+        <div id="selectBannerColor" class="color-field">
+            <div id="bannerColorPicker" class="picker hidden" acp-color="#393e46" acp-show-hsl="no" acp-show-rgb="no" acp-show-hex="yes" acp-palette="PALETTE_MATERIAL_CHROME"></div>
+        </div>
+
+        <div id="banner_image" class="hidden flex col gap-xs">
+            <div class="image">
+                <img src="../assets/placeholderbackground.svg">
+            </div>
+            <div class="field nofocus ">
+                <label>Luminousity</label>
+                <input id="banner_brightness" min="0" max="100" value="50" type="range" oninput="this.nextElementSibling.value = this.value">
+                <output>50</output>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+
+    <div class="subtitle">System</div>
+
+    <div class="checkbox">
+        <label id="signin_automatically">Sign in automatically</label>
+    </div>
+
+    <div class="checkbox">
+        <label id="run_on_startup">Run application on startup</label>
+    </div>
+
+    <div class="divider"></div>
+
+
+    <div class="save">
+        <button id="cancel" class="alt">Cancel</button>
+        <button id="save">Save</button>
+    </div>
+
+
+</div>

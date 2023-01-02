@@ -1,3 +1,5 @@
+<div id="loading"></div>
+
 <header>
     <div class="window_control">
         <div id="win_min" class="mso minimize">horizontal_rule</div>
@@ -7,7 +9,7 @@
     <div class="profile">
 
         <div class="profilepicture">
-            <img src="../assets/profile.png">
+            <img src="../assets/profilepicture.svg">
         </div>
         <div class="profileinfo">
             <div class="profilename">name</div>
@@ -20,24 +22,62 @@
     <div class="buttons">
         <div class="function">
             <div id="notificationButton" data-attr="on" class="bell mso"></div>
-            <div class="menu mso">menu</div>
+            <div id="sidebarButton" data-attr="on" class="menu mso">menu</div>
         </div>
+    </div>
+    <div id="bannerBackground">
+        <img src="">
+        <div class="background"></div>
     </div>
 </header>
 
 
 <main>
+    <div id="mainBackground">
+        <div class="background"></div>
+        <img src="">
+    </div>
 
-    <div id="messagearea" class="messagearea">
+    <div class="chatarea">
+        <div id="messagearea" class="messagearea">
+        </div>
+        <div id="sendarea" class="sendarea">
+            <div id="newMessageAlert" class="hidden newMessageAlert">
+                <span class="mso">arrow_downward</span>
+                <span>New Message</span>
+            </div>
+            <div id="attachment" class="attachmentarea"></div>
+            <textarea id="textarea" spellcheck="true" placeholder="Message"></textarea>
+        </div>
     </div>
 
 
-    <div id="sendarea" class="sendarea">
-        <div id="newMessageAlert" class="hidden newMessageAlert">
-            <span class="mso">arrow_downward</span>
-            <span>New Message</span>
+
+    <div id="sideBarContainer" class="sidebarcontainer">
+
+        <div id="sideContent" class="sidecontent hidden">
+
         </div>
-        <div id="attachment" class="attachmentarea"></div>
-        <textarea id="textarea" spellcheck="true" placeholder="Message"></textarea>
+
+        <div class="sidemenu">
+
+
+            <div id="menu_chat" class="item" data-active>
+                <span class="mso">chat</span>
+            </div>
+
+            <div id="menu_image" class="item">
+                <span class="mso">image</span>
+            </div>
+
+            <div id="menu_file" class="item">
+                <span class="mso">description</span>
+            </div>
+
+            <div id="menu_setting" class="item">
+                <span class="mso">settings</span>
+            </div>
+        </div>
+
     </div>
 </main>

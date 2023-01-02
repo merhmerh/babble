@@ -15,9 +15,11 @@
   "author": "babble",
   "license": "ISC",
   "dependencies": {
+    "a-color-picker": "^1.2.1",
     "dayjs": "^1.11.7",
     "dotenv": "^16.0.3",
     "electron-updater": "^5.3.0",
+    "ext-name": "^5.0.0",
     "firebase": "^9.15.0",
     "html-loader": "^4.2.0",
     "uuid": "^9.0.0"

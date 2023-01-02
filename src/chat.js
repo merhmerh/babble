@@ -1,8 +1,11 @@
-import { doc, addDoc, collection, query, onSnapshot, orderBy, limit, where, getDocs } from 'firebase/firestore';
+import { doc, addDoc, collection, query, onSnapshot, orderBy, limit, where, getDocs, getDoc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable, uploadString } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid'
 import { db, storage } from './firebase';
 import dayjs from "dayjs";
+import settings_html from '../page/settings.html'
+const AColorPicker = require('a-color-picker');
+
 
 //change log
 //timestamp in hh:ss format (tbd: allow toggle to h:ss a)
@@ -13,12 +16,6 @@ import dayjs from "dayjs";
 //Right click tray to exit
 
 export function startChat(user) {
-
-    ipc.receive('isUpdateReady', (data) => {
-        console.log(data);
-    });
-
-
     document.getElementById('win_min').addEventListener('click', (e) => {
         ipc.send('minimize')
     })
@@ -49,10 +46,6 @@ export function startChat(user) {
             sendArea.querySelector('#newMessageAlert').classList.add('hidden')
         }
     })
-
-    setTimeout(() => {
-        scrollToBottom()
-    }, 10);
 
     textarea.addEventListener('input', (e) => {
         textarea.style.height = 'auto'
@@ -118,6 +111,10 @@ export function startChat(user) {
         }
     })
 
+
+    const sideBarContainer = document.getElementById('sideBarContainer');
+
+
     //toggle notification
     const notificationButton = document.getElementById('notificationButton')
     notificationButton.addEventListener('click', (e) => {
@@ -129,6 +126,46 @@ export function startChat(user) {
             cfg.allowNotification = true
         }
     });
+
+    //toggle menu
+    const menuButton = document.getElementById('sidebarButton');
+    menuButton.addEventListener('click', (e) => {
+        const toggle = menuButton.getAttribute('data-attr')
+
+        if (toggle == 'on') {
+            menuButton.setAttribute('data-attr', 'off')
+            sideBarContainer.classList.add('hidden')
+        } else {
+            menuButton.setAttribute('data-attr', 'on')
+            sideBarContainer.classList.remove('hidden')
+        }
+
+
+    })
+
+    sideBarContainer.querySelectorAll('.sidemenu > .item').forEach(el => {
+        el.addEventListener('click', (e) => {
+
+            //hide SideContent
+            const active = sideBarContainer.querySelector('.sidemenu > .item[data-active]')
+            if (el == active) {
+                el.removeAttribute('data-active')
+                return sideBarContainer.querySelector('#sideContent').classList.add('hidden')
+            }
+
+            //remove all sidebar attrbiute
+            sideBarContainer.querySelectorAll('.sidemenu > .item').forEach(el => {
+                el.removeAttribute('data-active')
+            })
+
+            el.setAttribute('data-active', '')
+
+            if (el.id == 'menu_setting') {
+                menuSetting(user)
+            }
+        })
+    })
+
 
     //ignore event when dragging
     document.addEventListener('dragover', (e) => {
@@ -210,6 +247,9 @@ export function startChat(user) {
         })
 
         console.log('Chat loaded');
+        setTimeout(() => {
+            scrollToBottom()
+        }, 100);
     })()
 
     //send Message
@@ -363,7 +403,7 @@ export function startChat(user) {
             })()
 
             const ts = data.timestamp.toDate();
-            const time = dayjs(ts).format('hh:mm')
+            const time = dayjs(ts).format('HH:mm:ss')
 
             const html = `
                 <div class="message">
@@ -466,5 +506,320 @@ export function startChat(user) {
         })
     }
 
+    // document.getElementById('menu_setting').click()
+}
 
+
+async function menuSetting(user) {
+    const body = document.body
+    const sideBarContainer = document.getElementById('sideBarContainer');
+    const sideContent = document.getElementById('sideContent');
+
+    sideContent.classList.remove('hidden')
+    if (sideContent.querySelector('#settings')) {
+        return
+    }
+
+    sideContent.insertAdjacentHTML('beforeend', settings_html)
+    const container = sideContent.querySelector('#settings')
+
+
+    //set Value
+    const config = await ipc.promise('getConfig')
+
+    container.querySelector('#font').value = config.fontFamily ? config.fontFamily : 'Default'
+    container.querySelector('#fontSize').value = config.fontSize ? config.fontSize : 16
+    container.querySelector('#fontSize').nextElementSibling.textContent = config.fontSize ? config.fontSize : 16
+    container.querySelector('#selectBackgroundColor').style.backgroundColor = config.backgroundColor ? config.backgroundColor : '#222831'
+    container.querySelector('#selectBannerColor').style.backgroundColor = config.bannerColor ? config.bannerColor : '#393e46'
+    container.querySelector('#selectAccentColor').style.backgroundColor = config.bannerColor ? config.bannerColor : '#4565a4'
+    if (config.backgroundImage)
+        container.querySelector('#background_image img').src = config.backgroundImage
+
+    if (config.bannerImage)
+        container.querySelector('#banner_image img').src = config.bannerImage
+
+    container.querySelector('#banner_brightness').value = config.bannerLum ? config.bannerLum : 50
+    container.querySelector('#banner_brightness').nextElementSibling.textContent = config.bannerLum ? config.bannerLum : 50
+
+    container.querySelector('#background_brightness').value = config.backgroundLum ? config.backgroundLum : 50
+    container.querySelector('#background_brightness').nextElementSibling.textContent = config.backgroundLum ? config.backgroundLum : 50
+
+
+    if (config.autoLogin)
+        container.querySelector('#signin_automatically').setAttribute('checked', '')
+
+    if (config.runOnStartup)
+        container.querySelector('#run_on_startup').setAttribute('checked', '')
+
+    if (config.backgroundColor) {
+        container.querySelector('#backgroundColorPicker').setAttribute('acp-color', config.backgroundColor)
+        container.querySelector('#selectBackgroundColor').style.backgroundColor = config.backgroundColor
+    }
+
+    if (config.bannerColor) {
+        container.querySelector('#bannerColorPicker').setAttribute('acp-color', config.bannerColor)
+        container.querySelector('#selectBannerColor').style.backgroundColor = config.bannerColor
+    }
+
+
+    //  container.querySelector('#run_on_startup').hasAttribute('checked')
+
+
+    console.log(user);
+
+    const docRef = doc(db, 'users', user.uid)
+    const docSnap = await getDoc(docRef)
+    const userData = docSnap.data()
+
+    container.querySelector('#name').value = userData.name
+    container.querySelector('#about').value = userData.about
+
+    AColorPicker.from('.picker').on('change', (picker, rawColor) => {
+
+        const field = picker.element.parentElement.parentElement
+        const id = field.id
+        const color = AColorPicker.parseColor(rawColor, 'hex')
+        field.style.backgroundColor = color;
+
+        if (id == 'selectBackgroundColor') {
+            body.querySelector('#mainBackground > .background').style.backgroundColor = color
+            body.querySelector('#mainBackground > .background').style.opacity = 1
+            return
+        }
+
+        if (id == 'selectBannerColor') {
+            body.querySelector('#bannerBackground > .background').style.backgroundColor = color
+            body.querySelector('#bannerBackground > .background').style.opacity = 1
+            return
+        }
+    });
+
+    container.querySelectorAll('.color-field').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-field')) {
+                const colorPicker = el.querySelector('.picker')
+                if (colorPicker.classList.contains('hidden')) {
+                    colorPicker.classList.remove('hidden')
+                } else {
+                    colorPicker.classList.add('hidden')
+                }
+
+            }
+
+        })
+    })
+
+    container.querySelectorAll('.select-option > .select').forEach(el => {
+        el.addEventListener('click', (e) => {
+            el.nextElementSibling.classList.remove('hidden')
+        })
+    })
+
+    container.querySelectorAll('.select-option > .dropdown > .option').forEach(el => {
+        el.addEventListener('click', (e) => {
+            el.parentElement.classList.add('hidden')
+            //get parent id
+            const id = el.parentElement.parentElement.id
+            const value = el.textContent
+            dropdownFunction(id, value)
+
+        })
+    })
+
+    //when sign_in automatically 
+    container.querySelector('#signin_automatically').addEventListener('click', (e) => {
+        container.querySelector('#signin_automatically').toggleAttribute('checked')
+    })
+
+    container.querySelector('#run_on_startup').addEventListener('click', (e) => {
+        container.querySelector('#run_on_startup').toggleAttribute('checked')
+    })
+
+
+    function dropdownFunction(id, value) {
+        if (id == 'select_background') {
+            document.getElementById(id).querySelector('.select').setAttribute('data-value', value)
+
+            if (value.toLowerCase() == 'image') {
+                document.getElementById('selectBackgroundColor').classList.add('hidden')
+                document.getElementById('background_image').classList.remove('hidden')
+            } else if (value.toLowerCase() == 'color') {
+                document.getElementById('selectBackgroundColor').classList.remove('hidden')
+                document.getElementById('background_image').classList.add('hidden')
+            }
+
+            return
+        }
+
+        if (id == 'select_banner') {
+            document.getElementById(id).querySelector('.select').setAttribute('data-value', value)
+
+            if (value.toLowerCase() == 'image') {
+                document.getElementById('selectBannerColor').classList.add('hidden')
+                document.getElementById('banner_image').classList.remove('hidden')
+            } else if (value.toLowerCase() == 'color') {
+                document.getElementById('selectBannerColor').classList.remove('hidden')
+                document.getElementById('banner_image').classList.add('hidden')
+            }
+
+            return
+        }
+    }
+
+
+    container.querySelector('#font').addEventListener('change', (e) => {
+        const value = e.target.value
+        if (value.toLowerCase() == 'default') {
+            document.body.style.fontFamily = 'Inter';
+        }
+        document.body.style.fontFamily = e.target.value;
+    });
+
+    container.querySelector('#fontSize').addEventListener('input', (e) => {
+        console.log(e.target.value);
+
+        document.querySelector('.chatarea').style.fontSize = e.target.value + 'px';
+        scrollToBottom()
+    })
+
+    //BACKGROUND 
+    container.querySelector('#background_image > .image').addEventListener('click', async (e) => {
+        const data_url = await ipc.promise('getFile')
+        container.querySelector('#background_image > .image > img').src = data_url
+        body.querySelector('#mainBackground > img').src = data_url
+    })
+
+    container.querySelector('#background_brightness').addEventListener('dblclick', (e) => {
+        console.log('dbl');
+        container.querySelector('#background_brightness').nextElementSibling.textContent = 50
+        container.querySelector('#background_brightness').value = 50
+        body.querySelector('#mainBackground > .background').style.opacity = 0
+    })
+
+    container.querySelector('#background_brightness').addEventListener('input', (e) => {
+        const value = e.target.value
+        container.querySelector('#background_brightness').nextElementSibling.textContent = value
+        if (value > 50) {
+            body.querySelector('#mainBackground > .background').style.backgroundColor = 'white'
+            body.querySelector('#mainBackground > .background').style.opacity = (value - 50) * 2 / 100
+        } else {
+            const c = container.querySelector('#selectBackgroundColor').style.backgroundColor
+            const hex = AColorPicker.parseColor(c, 'hex')
+            body.querySelector('#mainBackground > .background').style.backgroundColor = hex
+            body.querySelector('#mainBackground > .background').style.opacity = 1 - ((value) * 2 / 100)
+        }
+    })
+
+    //BANNER
+    container.querySelector('#banner_image > .image').addEventListener('click', async (e) => {
+        const data_url = await ipc.promise('getFile')
+        container.querySelector('#banner_image > .image > img').src = data_url
+        body.querySelector('#bannerBackground > img').src = data_url
+    })
+
+    container.querySelector('#banner_brightness').addEventListener('dblclick', (e) => {
+        console.log('dbl');
+        container.querySelector('#banner_brightness').nextElementSibling.textContent = 50
+        container.querySelector('#banner_brightness').value = 50
+        body.querySelector('#bannerBackground > .background').style.opacity = 0
+    })
+
+    container.querySelector('#banner_brightness').addEventListener('input', (e) => {
+        const value = e.target.value
+        container.querySelector('#banner_brightness').nextElementSibling.textContent = value
+        if (value > 50) {
+            body.querySelector('#bannerBackground > .background').style.backgroundColor = 'white'
+            body.querySelector('#bannerBackground > .background').style.opacity = (value - 50) * 2 / 100
+        } else {
+            const c = container.querySelector('#selectBannerColor').style.backgroundColor
+            const hex = AColorPicker.parseColor(c, 'hex')
+            body.querySelector('#bannerBackground > .background').style.backgroundColor = hex
+            body.querySelector('#bannerBackground > .background').style.opacity = 1 - ((value) * 2 / 100)
+        }
+    })
+
+
+    const name = container.querySelector('#name')
+    name.addEventListener('change', (e) => {
+        const docRef = doc(db, "users", user.uid)
+        updateDoc(docRef, {
+            name: name.value
+        })
+    })
+
+    const about = container.querySelector('#about')
+    about.addEventListener('change', (e) => {
+        const docRef = doc(db, "users", user.uid)
+        updateDoc(docRef, {
+            about: about.value
+        })
+    })
+
+    //change profilePicture
+    container.querySelector('#changeProfilePicture').addEventListener('click', (e) => {
+        ipc.promise('getFile').then(async src => {
+            container.querySelector('#changeProfilePicture > img').src = src
+            const storageRef = ref(storage, `users/${user.uid}/profilepicture`)
+            const snapshot = await uploadString(storageRef, src, 'data_url')
+            const url = await getDownloadURL(snapshot.ref)
+
+            await updateDoc(doc(db, "users", user.uid), {
+                profilePicture: url
+            })
+
+        })
+    })
+
+    //save
+    container.querySelector('#save').addEventListener('click', (e) => {
+
+
+        const data = {
+            add: {
+                fontFamily: container.querySelector('#font').value,
+                fontSize: container.querySelector('#fontSize').value,
+                autoLogin: container.querySelector('#signin_automatically').hasAttribute('checked'),
+                runOnStartup: container.querySelector('#run_on_startup').hasAttribute('checked'),
+                backgroundColor: AColorPicker.parseColor(body.querySelector('#mainBackground > .background').style.backgroundColor, 'hex'),
+                bannerColor: AColorPicker.parseColor(body.querySelector('#bannerBackground > .background').style.backgroundColor, 'hex')
+            },
+            remove: ['autoSignin']
+        }
+
+        if (body.querySelector('#mainBackground .background').style.opacity == 1) {
+            data.remove.push('backgroundImage')
+            data.remove.backgroundLum
+        }
+
+        if (body.querySelector('#bannerBackground .background').style.opacity == 1) {
+            data.remove.push('backgroundImage')
+            data.remove.bannerLum
+        }
+
+        if (body.querySelector('#mainBackground img').getAttribute('src')) {
+            const data_url = body.querySelector('#mainBackground img').getAttribute('src')
+            data.add.backgroundImage = data_url
+            data.add.backgroundLum = body.querySelector('#background_brightness').value
+        }
+
+        if (body.querySelector('#bannerBackground img').getAttribute('src')) {
+            const data_url = body.querySelector('#bannerBackground img').getAttribute('src')
+            data.add.bannerImage = data_url
+            data.add.bannerLum = body.querySelector('#banner_brightness').value
+        }
+
+        ipc.promise('updateConfig', data).then(res => {
+            console.log(res);
+            sideContent.scrollTo({ top: 0, behavior: 'smooth' })
+        })
+    })
+}
+
+
+
+
+function scrollToBottom() {
+    const messageArea = document.getElementById('messagearea');
+    messageArea.scrollTop = messageArea.scrollHeight
 }

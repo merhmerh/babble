@@ -1,7 +1,8 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, shell } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, shell, dialog } = require('electron')
 const path = require('path')
 const { autoUpdater } = require('electron-updater')
 const fs = require('fs')
+const extName = require('ext-name');
 require('dotenv').config()
 const crypto = require('crypto');
 
@@ -37,6 +38,8 @@ const createWindow = () => {
     const window = new BrowserWindow({
         x: x,
         y: y,
+        minWidth: 400,
+        minHeight: 800,
         width: 900,
         height: 800,
         autoHideMenuBar: true,
@@ -49,7 +52,9 @@ const createWindow = () => {
         }
     })
 
-    window.webContents.openDevTools();
+    if (isDev) {
+        window.webContents.openDevTools();
+    }
 
     const menu = Menu.buildFromTemplate([
         {
@@ -143,13 +148,41 @@ const createWindow = () => {
         window.hide()
     })
 
-    ipcMain.handle('getConfig', () => {
-        return configData
+    ipcMain.handle('getFile', () => {
+        const filePath = dialog.showOpenDialogSync(window, {
+            properties: ['openFile'],
+            filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'webp', 'svg', 'png', 'gif'] }],
+        })
+        const fileName = filePath[0].split('\\').pop()
+
+        const type = extName(fileName)
+        const base64 = fs.readFileSync(filePath[0]).toString('base64')
+        return `data:${type[0].mime};base64,${base64}`
     })
 
-    ipcMain.handle('updateConfig', (event, newConfig) => {
-        console.log(newConfig);
-        fs.writeFileSync(configPath, JSON.stringify(newConfig))
+
+    ipcMain.handle('getConfig', () => {
+        return JSON.parse(fs.readFileSync(configPath))
+    })
+
+    ipcMain.handle('replaceConfig', (event, newConfig) => {
+        // console.log(newConfig);
+        fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2))
+    })
+
+    ipcMain.handle('updateConfig', (event, obj) => {
+        const newConfig = JSON.parse(fs.readFileSync(configPath))
+
+        for (const item in obj['add']) {
+            newConfig[item] = obj['add'][item]
+        }
+
+        for (const item in obj['remove']) {
+            delete newConfig[obj['remove'][item]]
+        }
+
+        fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2))
+        return newConfig
     })
 
     ipcMain.handle('decrypt', (e, data) => {
@@ -184,12 +217,34 @@ const createWindow = () => {
 
     window.on('focus', () => window.flashFrame(false))
 
+    ipcMain.handle('checkUpdate', () => {
+        if (isDev) {
+            return ('dev')
+        }
+        return new Promise((resolve) => {
+            autoUpdater.checkForUpdatesAndNotify()
+            autoUpdater.on('update-available', () => {
+                resolve('update available')
+            });
 
-    if (!isDev) {
-        autoUpdater.checkForUpdatesAndNotify()
-        autoUpdater.on('checking-for-update', () => {
-        });
-    }
+            autoUpdater.on('update-not-available', () => {
+                resolve('latest')
+            })
+        })
+    })
+
+    // if (!isDev) {
+    //     window.once('ready-to-show', () => {
+    //         autoUpdater.checkForUpdatesAndNotify()
+    //         autoUpdater.on('update-available', () => {
+    //             window.webContents.send('haveUpdate', 'update available')
+    //         });
+
+    //         autoUpdater.on('update-not-available', () => {
+    //             window.webContents.send('haveUpdate', 'latest')
+    //         })
+    //     })
+    // }
 
     return window
 }
@@ -205,6 +260,7 @@ app.whenReady().then(() => {
         { label: 'Exit', role: 'close', click() { app.quit() } },
     ])
 
+
     tray.setContextMenu(contextMenu)
     tray.on('click', () => {
         window.show();
@@ -212,6 +268,5 @@ app.whenReady().then(() => {
 
 
 })
-
 
 
