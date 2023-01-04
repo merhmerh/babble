@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { db, storage } from './firebase';
 import dayjs from "dayjs";
 import settings_html from '../page/settings.html'
+import ctxMenu from './ctxmenu';
+import imgModal from './modal';
 const AColorPicker = require('a-color-picker');
 
 
@@ -16,6 +18,7 @@ const AColorPicker = require('a-color-picker');
 //Right click tray to exit
 
 export function startChat(user) {
+
     document.getElementById('win_min').addEventListener('click', (e) => {
         ipc.send('minimize')
     })
@@ -24,7 +27,6 @@ export function startChat(user) {
         console.log('close?');
         ipc.send('minimizeToTray')
     })
-
 
     const textarea = document.getElementById('textarea');
     const messageArea = document.getElementById('messagearea');
@@ -237,9 +239,18 @@ export function startChat(user) {
         )
         const querySnaphot = await (getDocs(q))
         const msgarr = []
+
+        onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type == 'modified') {
+                    onMessageModified(change)
+                    return
+                }
+            })
+        })
+
         querySnaphot.forEach(doc => {
             if (doc.data().sender !== user.uid) {
-                console.log('read all msges', doc.ref.id, doc.data().message);
                 updateDoc(doc.ref, {
                     read: true
                 })
@@ -255,7 +266,6 @@ export function startChat(user) {
         msgarr.forEach(msg => {
             const direction = msg.sender == user.uid ? 'right' : 'left'
             displayMessage(msg, direction).then(() => {
-                console.log(msg.id);
                 messageArea.querySelector(`.messagebox[data-id="${msg.id}"] > .timestamp `).setAttribute('data-read', 'true')
             })
         })
@@ -339,39 +349,57 @@ export function startChat(user) {
 
         const newMessage = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                //on modified
-                if (change.type === "modified") {
-                    messageArea.querySelector(`.messagebox[data-id="${change.doc.id}"] > .timestamp `).setAttribute('data-read', 'true')
+                console.log(change.type);
+
+                if (change.type == 'modified') {
+                    onMessageModified(change)
                     return
                 }
 
-                //on added
-                const msg = change.doc.data()
-                msg.id = change.doc.ref.id
-                const direction = msg.sender == user.uid ? 'right' : 'left'
-                displayMessage(msg, direction).then(async (res) => {
-                    const isfocus = await ipc.promise('isFocus')
-                    if (isfocus || msg.sender == user.uid) {
+                ipc.promise('isFocus').then(res => {
+                    if (!res) {
                         return
                     }
 
+                    if (change.doc.data().read) {
+                        return
+                    }
+
+                    if (change.doc.data().sender == user.uid) {
+                        return
+                    }
+
+                    updateDoc(change.doc.ref, {
+                        read: true
+                    })
+                    return
+                })
+
+
+                //display message
+                const msg = change.doc.data()
+                msg.id = change.doc.ref.id
+                const direction = msg.sender == user.uid ? 'right' : 'left'
+
+                displayMessage(msg, direction).then(async (res) => {
                     ipc.once('focus', () => {
                         updateDoc(change.doc.ref, {
                             read: true
                         })
                     })
 
+                    //Send notification
+                    const isfocus = await ipc.promise('isFocus')
+                    if (isfocus || msg.sender == user.uid) {
+                        return
+                    }
+
                     if (cfg.allowNotification && cfg.readyNotification) {
 
-                        const notification = new Notification('New Message', { body: `${msg.message}` })
+                        ipc.send('notify', msg.message)
                         ipc.send('flashFrame')
 
                         cfg.readyNotification = false
-
-                        notification.onclick = (e) => {
-                            e.preventDefault()
-                            ipc.send('focusWindow')
-                        }
                     }
 
                     setTimeout(() => {
@@ -417,6 +445,10 @@ export function startChat(user) {
             })()
 
             const string_html = (() => {
+                if (data.status == 'deleted') {
+                    return `<div class="string deleted">Message was deleted.</div>`
+                }
+
                 if (!data.message) {
                     return ''
                 }
@@ -425,7 +457,7 @@ export function startChat(user) {
                 const regexString = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g
                 const messageHTML = data.message.replace(regexString, "<a href='$1' target='_blank'>$1</a>")
 
-                return `<div class="string">${messageHTML}</div>`
+                return `<div class="string ${data.status}">${messageHTML}</div>`
 
             })()
 
@@ -484,6 +516,123 @@ export function startChat(user) {
                 // if Recieved Message and is NOT bottom, show scroll to bottom
                 addMessageAlert()
             })
+
+            messagebox.querySelectorAll('.attachment img').forEach(img => {
+                const contextMenu = new ctxMenu({
+                    selector: img,
+                    list: [{ name: 'open', string: 'Open', icon: '../assets/open.svg' },
+                    { name: 'openTab', string: 'Open in new tab', icon: '../assets/opennewtab.svg' },
+                    { name: 'download', string: 'Download', icon: '../assets/download.svg' }],
+                })
+
+                contextMenu.on('open', (el) => {
+                    contextMenu.selector.click()
+                })
+
+                contextMenu.on('openTab', (el) => {
+                    const src = contextMenu.selector.src;
+                    window.open(src)
+                })
+
+                contextMenu.on('download', (el) => {
+                    const src = contextMenu.selector.src;
+                    ipc.send('download', src)
+                })
+
+                img.addEventListener('click', (e) => {
+                    const modal = new imgModal({
+                        src: contextMenu.selector.src
+                    })
+                })
+            })
+
+            //Add Context Menu - EDIT, DELETE, REPLY
+            const menuObj = (() => {
+                let obj
+                if (!data.message) {
+                    return []
+                }
+                if (data.sender !== user.uid) {
+                    obj = [{ name: 'reply' }]
+                } else {
+                    obj = [{
+                        name: 'edit'
+                    }, {
+                        name: 'delete'
+                    }]
+                }
+                return obj
+            })()
+
+            const contextMenu = new ctxMenu({
+                id: data.id,
+                selector: messagebox.querySelector('.message > .string'),
+                list: menuObj,
+            })
+
+            if (!menuObj.length) {
+                return
+            }
+
+            if (data.sender == user.uid) {
+                contextMenu.on('edit', () => {
+                    messageArea.querySelector(`.messagebox[data-id="${data.id}"] > .message > .string`).classList.add('hidden')
+
+                    const editTextArea = document.createElement('textarea')
+
+                    editTextArea.value = data.message
+                    editTextArea.focus()
+                    editTextArea.style.height = 'auto'
+                    editTextArea.rows = 1
+                    messageArea.querySelector(`.messagebox[data-id="${data.id}"] > .message`).append(editTextArea)
+                    editTextArea.style.height = editTextArea.scrollHeight + 'px'
+
+                    editTextArea.addEventListener('input', (e) => {
+                        editTextArea.style.height = 'auto'
+                        editTextArea.style.height = editTextArea.scrollHeight + 'px'
+                    })
+
+                    editTextArea.addEventListener('keydown', (e) => {
+                        if (e.key == 'Escape') {
+                            removeTextArea
+                            return
+                        }
+
+                        const keyEnter = e.key == 'Enter' && !e.shiftKey ? true : false
+
+                        if (keyEnter) {
+                            e.preventDefault()
+                            removeTextArea()
+
+                            if (data.message === editTextArea.value) {
+                                return
+                            }
+
+                            updateDoc(doc(db, `msges`, data.id), {
+                                status: 'edited',
+                                message: editTextArea.value
+                            })
+                        }
+
+                        function removeTextArea() {
+                            editTextArea.remove()
+                            messageArea.querySelector(`.messagebox[data-id="${data.id}"] > .message > .string`).classList.remove('hidden')
+                        }
+                    })
+
+                    scrollToBottom()
+                })
+
+                contextMenu.on('delete', () => {
+                    updateDoc(doc(db, `msges`, data.id), {
+                        status: 'deleted'
+                    })
+                })
+            } else {
+                contextMenu.on('reply', () => {
+                    console.log('reply');
+                })
+            }
         })
 
 
@@ -535,6 +684,7 @@ export function startChat(user) {
     }
 
     // document.getElementById('menu_setting').click()
+
 }
 
 
@@ -598,10 +748,6 @@ async function menuSetting(user) {
         container.querySelector('#selectBannerColor').style.backgroundColor = config.bannerColor
     }
 
-
-    //  container.querySelector('#run_on_startup').hasAttribute('checked')
-
-
     AColorPicker.from('.picker').on('change', (picker, rawColor) => {
         const field = picker.element.parentElement.parentElement
         const id = field.id
@@ -627,12 +773,12 @@ async function menuSetting(user) {
             if (e.button == 1) {
 
                 if (el.id == 'selectBackgroundColor') {
-                    el.backgroundColor = '#222831'
+                    el.style.backgroundColor = '#222831'
                     body.querySelector('#mainBackground > .background').style.backgroundColor = '#222831'
                 }
 
                 if (el.id == 'selectBannerColor') {
-                    el.backgroundColor = '#393e46'
+                    el.style.backgroundColor = '#393e46'
                     body.querySelector('#bannerBackground > .background').style.backgroundColor = '#393e46'
                 }
 
@@ -880,9 +1026,28 @@ async function menuSetting(user) {
 }
 
 
-
-
 function scrollToBottom() {
     const messageArea = document.getElementById('messagearea');
     messageArea.scrollTop = messageArea.scrollHeight
+}
+
+function onMessageModified(change) {
+    const messageArea = document.getElementById('messagearea');
+    if (change.type !== "modified") {
+        return
+    }
+
+    messageArea.querySelector(`.messagebox[data-id="${change.doc.id}"] > .timestamp `).setAttribute('data-read', 'true')
+
+    if (change.doc.data().status == 'deleted') {
+        const stringBox = messageArea.querySelector(`.messagebox[data-id="${change.doc.id}"] > .message > .string`)
+        stringBox.textContent = 'Message was deleted.'
+        stringBox.classList.add('deleted')
+    }
+
+    if (change.doc.data().status == 'edited') {
+        const stringBox = messageArea.querySelector(`.messagebox[data-id="${change.doc.id}"] > .message > .string`)
+        stringBox.textContent = change.doc.data().message
+        stringBox.classList.add('edited')
+    }
 }

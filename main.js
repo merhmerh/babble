@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, shell, dialog } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, screen, Tray, shell, dialog, Notification } = require('electron')
 const path = require('path')
 const { autoUpdater } = require('electron-updater')
 const fs = require('fs')
@@ -38,7 +38,7 @@ const createWindow = () => {
     const window = new BrowserWindow({
         x: x,
         y: y,
-        minWidth: 400,
+        minWidth: 450,
         minHeight: 800,
         width: 900,
         height: 800,
@@ -148,6 +148,10 @@ const createWindow = () => {
         window.hide()
     })
 
+    ipcMain.handle('download', (event, url) => {
+        window.webContents.downloadURL(url)
+    })
+
     ipcMain.handle('getFile', () => {
         const filePath = dialog.showOpenDialogSync(window, {
             properties: ['openFile'],
@@ -220,17 +224,18 @@ const createWindow = () => {
     })
 
     ipcMain.handle('checkUpdate', () => {
+        const version = process.env.npm_package_version
         if (isDev) {
-            return ('dev')
+            return ([version, 'dev'])
         }
         return new Promise((resolve) => {
             autoUpdater.checkForUpdatesAndNotify()
             autoUpdater.on('update-available', () => {
-                resolve('update available')
+                resolve([version, 'update available'])
             });
 
             autoUpdater.on('update-not-available', () => {
-                resolve('latest')
+                resolve([version, 'latest'])
             })
         })
     })
@@ -268,7 +273,21 @@ app.whenReady().then(() => {
         window.show();
     })
 
+    app.setAppUserModelId('com.babble.app')
 
+    ipcMain.handle('notify', (events, string) => {
+        const n = new Notification({
+            title: 'New Message',
+            body: string,
+            icon: "assets/icon.ico",
+        })
+        n.on('click', () => {
+            window.focus()
+            window.flashFrame(false)
+        })
+        n.show()
+    })
 })
 
+app.setAppUserModelId(app.name)
 

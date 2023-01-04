@@ -5,17 +5,19 @@ import login_html from '../page/login.html'
 import { startChat } from './chat'
 import { db } from './firebase';
 import { login } from './login';
-
-const packageJSON = require('../package.json')
+const { version } = require('../package.json')
 const body = document.body
 
 init()
 async function init() {
+
+    ipc.send('notify', 'test')
     body.insertAdjacentHTML('beforeend', login_html)
 
-    document.getElementById('version').innerHTML = `<span>${packageJSON.version}</span>`
     ipc.promise('checkUpdate').then(res => {
-        document.getElementById('version').insertAdjacentHTML('beforeend', `<span class="v">${res}</span>`)
+        document.getElementById('version').insertAdjacentHTML('beforeend', `
+            ${version}<span class="v">${res[1]}</span>
+        `)
     })
 
     login.then(async user => {

@@ -460,15 +460,69 @@ main {
                 .string {
                     white-space: pre-wrap;
                     word-break: break-word;
+
+                    &.deleted {
+                        color: $main-light;
+                        font-style: italic;
+                        font-size: 0.875rem;
+                        display: flex;
+                        align-items: center;
+                        &::before {
+                            font-family: $material;
+                            content: "\e14b";
+                            font-style: normal;
+                            font-size: inherit;
+                            padding-right: 0.25rem;
+                        }
+                    }
+                    &.edited {
+                        display: flex;
+                        flex-direction: column;
+                        &::after {
+                            padding-top: 0.5rem;
+                            content: "edited";
+                            margin-left: auto;
+                            font-size: 0.875rem;
+                            color: $main-light;
+                            font-style: italic;
+                        }
+                    }
                 }
+
+                textarea {
+                    min-width: 250px;
+                    width: calc(100vw - 12rem);
+                    max-width: calc(80vw - 96px);
+
+                    min-height: 36px;
+                    height: auto;
+                    max-height: 400px;
+
+                    border: none;
+                    background-color: $bg-alt;
+                    color: $main;
+                    font-family: inherit;
+                    font-size: inherit;
+                    margin: 0;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    resize: none;
+                    &:focus {
+                        outline: none;
+                    }
+                }
+
                 .attachment {
                     display: flex;
                     justify-content: center;
                     img {
                         border-radius: 0.25rem;
-                        width: 350px;
+                        min-width: 250px;
+                        max-height: 300px;
+                        width: 100%;
                         height: auto;
                         object-fit: contain;
+                        cursor: pointer;
                     }
                     video {
                         outline: none;
@@ -526,8 +580,8 @@ main {
         position: relative;
 
         .sidecontent {
-            background-color: rgba(darken($bg, 5), 0.9);
-            backdrop-filter: blur(2px);
+            background-color: rgba(darken($bg, 5), 0.99);
+            // backdrop-filter: blur(2px);
             width: 400px;
             height: 100%;
             position: relative;
@@ -641,7 +695,7 @@ main {
                     border-radius: 120px;
                     width: 120px;
                     height: 120px;
-                    outline: 2px solid $bg;
+                    outline: 2px solid darken($bg, 5);
                 }
 
                 &:hover {
@@ -800,6 +854,57 @@ main {
             width: 100%;
             height: 1px;
             background-color: $grey;
+        }
+    }
+}
+
+#contextMenu {
+    position: absolute;
+    background-color: rgba(#292a2d, 0.9);
+    // backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
+    padding: 0.5rem;
+    min-width: 200px;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .item {
+        cursor: pointer;
+        padding: 0.25rem;
+        padding: 0.375rem 0.5rem;
+        border-radius: 0.25rem;
+
+        img {
+            padding-right: 0.25rem;
+        }
+
+        &:hover {
+            background-color: $bg-alt;
+        }
+    }
+}
+
+#modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(darken($bg, 10), 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .modalcontent {
+        width: auto;
+        height: auto;
+        max-height: 80%;
+        max-width: 80%;
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
     }
 }

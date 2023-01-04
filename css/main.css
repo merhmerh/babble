@@ -1401,16 +1401,65 @@ main .messagearea .messagebox .message .string {
   white-space: pre-wrap;
   word-break: break-word;
 }
+main .messagearea .messagebox .message .string.deleted {
+  color: #aeb3b9;
+  font-style: italic;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+}
+main .messagearea .messagebox .message .string.deleted::before {
+  font-family: "Material Symbols Outlined";
+  content: "\e14b";
+  font-style: normal;
+  font-size: inherit;
+  padding-right: 0.25rem;
+}
+main .messagearea .messagebox .message .string.edited {
+  display: flex;
+  flex-direction: column;
+}
+main .messagearea .messagebox .message .string.edited::after {
+  padding-top: 0.5rem;
+  content: "edited";
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: #aeb3b9;
+  font-style: italic;
+}
+main .messagearea .messagebox .message textarea {
+  min-width: 250px;
+  width: calc(100vw - 12rem);
+  max-width: calc(80vw - 96px);
+  min-height: 36px;
+  height: auto;
+  max-height: 400px;
+  border: none;
+  background-color: #393e46;
+  color: #eeeeee;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  resize: none;
+}
+main .messagearea .messagebox .message textarea:focus {
+  outline: none;
+}
 main .messagearea .messagebox .message .attachment {
   display: flex;
   justify-content: center;
 }
 main .messagearea .messagebox .message .attachment img {
   border-radius: 0.25rem;
-  width: 350px;
+  min-width: 250px;
+  max-height: 300px;
+  width: 100%;
   height: auto;
   -o-object-fit: contain;
      object-fit: contain;
+  cursor: pointer;
 }
 main .messagearea .messagebox .message .attachment video {
   outline: none;
@@ -1464,9 +1513,7 @@ main .sidebarcontainer {
   position: relative;
 }
 main .sidebarcontainer .sidecontent {
-  background-color: rgba(24, 28, 34, 0.9);
-  -webkit-backdrop-filter: blur(2px);
-          backdrop-filter: blur(2px);
+  background-color: rgba(24, 28, 34, 0.99);
   width: 400px;
   height: 100%;
   position: relative;
@@ -1585,7 +1632,7 @@ main .sidebarcontainer .sidemenu .item:hover .mso {
   border-radius: 120px;
   width: 120px;
   height: 120px;
-  outline: 2px solid #222831;
+  outline: 2px solid #181c22;
 }
 #sideContent #settings .center .profilepicture:hover:after {
   position: absolute;
@@ -1729,4 +1776,53 @@ main .sidebarcontainer .sidemenu .item:hover .mso {
   width: 100%;
   height: 1px;
   background-color: #575b63;
+}
+
+#contextMenu {
+  position: absolute;
+  background-color: rgba(41, 42, 45, 0.9);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  padding: 0.5rem;
+  min-width: 200px;
+  border-radius: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+#contextMenu .item {
+  cursor: pointer;
+  padding: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+}
+#contextMenu .item img {
+  padding-right: 0.25rem;
+}
+#contextMenu .item:hover {
+  background-color: #393e46;
+}
+
+#modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(13, 15, 19, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#modal .modalcontent {
+  width: auto;
+  height: auto;
+  max-height: 80%;
+  max-width: 80%;
+}
+#modal .modalcontent img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
