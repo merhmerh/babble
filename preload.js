@@ -6,6 +6,9 @@ contextBridge.exposeInMainWorld('ipc', {
     receive: (channel, listener) => {
         ipcRenderer.on(channel, (event, ...args) => listener(...args));
     },
+    once: (channel, listener) => {
+        ipcRenderer.once(channel, (event, ...args) => listener(...args));
+    },
     promise: async (eventName, data) => {
         return await ipcRenderer.invoke(eventName, data)
     },

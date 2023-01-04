@@ -10,7 +10,6 @@ const packageJSON = require('../package.json')
 const body = document.body
 
 init()
-
 async function init() {
     body.insertAdjacentHTML('beforeend', login_html)
 
@@ -47,34 +46,42 @@ async function setConfigStyle() {
 
     if (config.backgroundColor) {
         body.querySelector('#mainBackground > .background').style.backgroundColor = config.backgroundColor
+        body.querySelector('#mainBackground > .background').style.opacity = 1
     }
 
     if (config.backgroundImage) {
         body.querySelector('#mainBackground > img').src = config.backgroundImage
-        const opacity = config.backgroundLum
-        if (opacity > 50) {
-            body.querySelector('#mainBackground > .background').style.backgroundColor = 'white'
-            body.querySelector('#mainBackground > .background').style.opacity = (config.backgroundLum - 50) * 2 / 100
+        let bgColor, opacity
+        const lum = config.backgroundLum
+        if (lum > 50) {
+            bgColor = 'white'
+            opacity = (config.backgroundLum - 50) * 2 / 100
         } else {
-            body.querySelector('#mainBackground > .background').style.backgroundColor = config.backgroundColor
-            body.querySelector('#mainBackground > .background').style.opacity = 1 - ((config.backgroundLum) * 2 / 100)
+            bgColor = config.backgroundColor
+            opacity = 1 - ((config.backgroundLum) * 2 / 100)
         }
+        body.querySelector('#mainBackground > .background').style.backgroundColor = bgColor
+        body.querySelector('#mainBackground > .background').style.opacity = opacity
     }
 
-
-    if (config.bannerColor)
+    if (config.bannerColor) {
         body.querySelector('#bannerBackground > .background').style.backgroundColor = config.bannerColor
+        body.querySelector('#bannerBackground > .background').style.opacity = 1
+    }
 
     if (config.bannerImage) {
         body.querySelector('#bannerBackground > img').src = config.bannerImage
-        const opacity = config.backgroundLum
-        if (opacity > 50) {
-            body.querySelector('#bannerBackground > .background').style.backgroundColor = 'white'
-            body.querySelector('#bannerBackground > .background').style.opacity = (config.backgroundLum - 50) * 2 / 100
+        let bgColor, opacity
+        const lum = config.bannerLum
+        if (lum > 50) {
+            bgColor = 'white'
+            opacity = (config.bannerLum - 50) * 2 / 100
         } else {
-            body.querySelector('#bannerBackground > .background').style.backgroundColor = config.backgroundColor
-            body.querySelector('#bannerBackground > .background').style.opacity = 1 - ((config.backgroundLum) * 2 / 100)
+            bgColor = config.bannerColor
+            opacity = 1 - ((config.bannerLum) * 2 / 100)
         }
+        body.querySelector('#bannerBackground > .background').style.backgroundColor = bgColor
+        body.querySelector('#bannerBackground > .background').style.opacity = opacity
     }
 
 }

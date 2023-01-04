@@ -166,7 +166,6 @@ const createWindow = () => {
     })
 
     ipcMain.handle('replaceConfig', (event, newConfig) => {
-        // console.log(newConfig);
         fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2))
     })
 
@@ -215,7 +214,10 @@ const createWindow = () => {
         return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
     })
 
-    window.on('focus', () => window.flashFrame(false))
+    window.on('focus', () => {
+        window.flashFrame(false)
+        window.webContents.send('focus')
+    })
 
     ipcMain.handle('checkUpdate', () => {
         if (isDev) {

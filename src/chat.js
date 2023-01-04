@@ -1,4 +1,4 @@
-import { doc, addDoc, collection, query, onSnapshot, orderBy, limit, where, getDocs, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, addDoc, collection, query, onSnapshot, orderBy, limit, where, getDocs, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable, uploadString } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid'
 import { db, storage } from './firebase';
@@ -74,10 +74,12 @@ export function startChat(user) {
     })
 
     textarea.addEventListener('paste', async (e) => {
+        console.log(e.clipboardData.files);
         const file = e.clipboardData.files[0]
         if (!file) {
             return
         }
+
 
         if (file.type.includes('image')) {
             const url = await getDataURL(file)
@@ -234,16 +236,28 @@ export function startChat(user) {
             limit(20)
         )
         const querySnaphot = await (getDocs(q))
-        const data = []
+        const msgarr = []
         querySnaphot.forEach(doc => {
-            data.push(doc.data())
+            if (doc.data().sender !== user.uid) {
+                console.log('read all msges', doc.ref.id, doc.data().message);
+                updateDoc(doc.ref, {
+                    read: true
+                })
+            }
+            const data = doc.data()
+            data.id = doc.ref.id
+
+            msgarr.push(data)
         })
 
-        data.reverse()
+        msgarr.reverse()
 
-        data.forEach(msg => {
+        msgarr.forEach(msg => {
             const direction = msg.sender == user.uid ? 'right' : 'left'
-            displayMessage(msg, direction)
+            displayMessage(msg, direction).then(() => {
+                console.log(msg.id);
+                messageArea.querySelector(`.messagebox[data-id="${msg.id}"] > .timestamp `).setAttribute('data-read', 'true')
+            })
         })
 
         console.log('Chat loaded');
@@ -256,8 +270,9 @@ export function startChat(user) {
     async function sendMessage() {
         const data = {
             message: textarea.value,
-            timestamp: new Date(),
-            sender: user.uid
+            timestamp: serverTimestamp(),
+            sender: user.uid,
+            read: false,
         }
 
         //upload to storage
@@ -324,7 +339,15 @@ export function startChat(user) {
 
         const newMessage = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
+                //on modified
+                if (change.type === "modified") {
+                    messageArea.querySelector(`.messagebox[data-id="${change.doc.id}"] > .timestamp `).setAttribute('data-read', 'true')
+                    return
+                }
+
+                //on added
                 const msg = change.doc.data()
+                msg.id = change.doc.ref.id
                 const direction = msg.sender == user.uid ? 'right' : 'left'
                 displayMessage(msg, direction).then(async (res) => {
                     const isfocus = await ipc.promise('isFocus')
@@ -332,6 +355,11 @@ export function startChat(user) {
                         return
                     }
 
+                    ipc.once('focus', () => {
+                        updateDoc(change.doc.ref, {
+                            read: true
+                        })
+                    })
 
                     if (cfg.allowNotification && cfg.readyNotification) {
 
@@ -344,7 +372,6 @@ export function startChat(user) {
                             e.preventDefault()
                             ipc.send('focusWindow')
                         }
-
                     }
 
                     setTimeout(() => {
@@ -409,12 +436,13 @@ export function startChat(user) {
                 <div class="message">
                 ${attachment_html}${string_html}
                 </div>
-                <div class="timestamp">${time}</div>
-        `
+                <div class="timestamp" data-read="${data.read ? "true" : "false"}">${time}</div>
+            `
 
             const messagebox = document.createElement('div')
             messagebox.classList.add('messagebox')
             messagebox.classList.add('hidden')
+            messagebox.setAttribute('data-id', data.id)
             messagebox.classList.add(position)
 
             messagebox.insertAdjacentHTML('beforeend', html)
@@ -527,6 +555,14 @@ async function menuSetting(user) {
     //set Value
     const config = await ipc.promise('getConfig')
 
+    const docRef = doc(db, 'users', user.uid)
+    const docSnap = await getDoc(docRef)
+    const userData = docSnap.data()
+
+    container.querySelector('#name').value = userData.name
+    container.querySelector('#about').value = userData.about
+    container.querySelector('#changeProfilePicture > img').src = userData.profilePicture
+
     container.querySelector('#font').value = config.fontFamily ? config.fontFamily : 'Default'
     container.querySelector('#fontSize').value = config.fontSize ? config.fontSize : 16
     container.querySelector('#fontSize').nextElementSibling.textContent = config.fontSize ? config.fontSize : 16
@@ -566,17 +602,7 @@ async function menuSetting(user) {
     //  container.querySelector('#run_on_startup').hasAttribute('checked')
 
 
-    console.log(user);
-
-    const docRef = doc(db, 'users', user.uid)
-    const docSnap = await getDoc(docRef)
-    const userData = docSnap.data()
-
-    container.querySelector('#name').value = userData.name
-    container.querySelector('#about').value = userData.about
-
     AColorPicker.from('.picker').on('change', (picker, rawColor) => {
-
         const field = picker.element.parentElement.parentElement
         const id = field.id
         const color = AColorPicker.parseColor(rawColor, 'hex')
@@ -596,6 +622,23 @@ async function menuSetting(user) {
     });
 
     container.querySelectorAll('.color-field').forEach(el => {
+        el.addEventListener('mousedown', (e) => {
+            e.preventDefault()
+            if (e.button == 1) {
+
+                if (el.id == 'selectBackgroundColor') {
+                    el.backgroundColor = '#222831'
+                    body.querySelector('#mainBackground > .background').style.backgroundColor = '#222831'
+                }
+
+                if (el.id == 'selectBannerColor') {
+                    el.backgroundColor = '#393e46'
+                    body.querySelector('#bannerBackground > .background').style.backgroundColor = '#393e46'
+                }
+
+            }
+        })
+
         el.addEventListener('click', (e) => {
             if (e.target.classList.contains('color-field')) {
                 const colorPicker = el.querySelector('.picker')
@@ -642,7 +685,6 @@ async function menuSetting(user) {
             document.getElementById(id).querySelector('.select').setAttribute('data-value', value)
 
             if (value.toLowerCase() == 'image') {
-                document.getElementById('selectBackgroundColor').classList.add('hidden')
                 document.getElementById('background_image').classList.remove('hidden')
             } else if (value.toLowerCase() == 'color') {
                 document.getElementById('selectBackgroundColor').classList.remove('hidden')
@@ -656,7 +698,6 @@ async function menuSetting(user) {
             document.getElementById(id).querySelector('.select').setAttribute('data-value', value)
 
             if (value.toLowerCase() == 'image') {
-                document.getElementById('selectBannerColor').classList.add('hidden')
                 document.getElementById('banner_image').classList.remove('hidden')
             } else if (value.toLowerCase() == 'color') {
                 document.getElementById('selectBannerColor').classList.remove('hidden')
@@ -688,6 +729,17 @@ async function menuSetting(user) {
         const data_url = await ipc.promise('getFile')
         container.querySelector('#background_image > .image > img').src = data_url
         body.querySelector('#mainBackground > img').src = data_url
+        body.querySelector('#mainBackground > .background').style.opacity = 0
+        container.querySelector('#background_brightness').value = 50
+        container.querySelector('#background_brightness').nextElementSibling.textContent = 50
+    })
+
+    container.querySelector('#background_image > .image').addEventListener('mousedown', async (e) => {
+        e.preventDefault();
+        if (e.button == 1) {
+            container.querySelector('#background_image > .image > img').src = ""
+            body.querySelector('#mainBackground > img').src = ""
+        }
     })
 
     container.querySelector('#background_brightness').addEventListener('dblclick', (e) => {
@@ -716,6 +768,14 @@ async function menuSetting(user) {
         const data_url = await ipc.promise('getFile')
         container.querySelector('#banner_image > .image > img').src = data_url
         body.querySelector('#bannerBackground > img').src = data_url
+    })
+
+    container.querySelector('#banner_image > .image').addEventListener('mousedown', async (e) => {
+        e.preventDefault();
+        if (e.button == 1) {
+            container.querySelector('#banner_image > .image > img').src = ""
+            body.querySelector('#bannerBackground > img').src = ""
+        }
     })
 
     container.querySelector('#banner_brightness').addEventListener('dblclick', (e) => {
@@ -789,24 +849,27 @@ async function menuSetting(user) {
 
         if (body.querySelector('#mainBackground .background').style.opacity == 1) {
             data.remove.push('backgroundImage')
-            data.remove.backgroundLum
         }
 
         if (body.querySelector('#bannerBackground .background').style.opacity == 1) {
-            data.remove.push('backgroundImage')
-            data.remove.bannerLum
+            data.remove.push('bannerImage')
         }
 
         if (body.querySelector('#mainBackground img').getAttribute('src')) {
             const data_url = body.querySelector('#mainBackground img').getAttribute('src')
             data.add.backgroundImage = data_url
             data.add.backgroundLum = body.querySelector('#background_brightness').value
+        } else {
+            console.log('no background');
+            data.remove.push('backgroundLum')
         }
 
         if (body.querySelector('#bannerBackground img').getAttribute('src')) {
             const data_url = body.querySelector('#bannerBackground img').getAttribute('src')
             data.add.bannerImage = data_url
             data.add.bannerLum = body.querySelector('#banner_brightness').value
+        } else {
+            data.remove.push('bannerLum')
         }
 
         ipc.promise('updateConfig', data).then(res => {
