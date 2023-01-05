@@ -9,8 +9,7 @@ import imgModal from './modal';
 const AColorPicker = require('a-color-picker');
 
 
-//autoscroll down check
-
+//edit message textarea -> escape to quit
 
 export function startChat(user) {
 

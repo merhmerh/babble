@@ -10,7 +10,6 @@ const body = document.body
 
 init()
 async function init() {
-    // ipc.send('notify', 'test')
     body.insertAdjacentHTML('beforeend', login_html)
 
     ipc.promise('checkUpdate').then(res => {

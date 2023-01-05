@@ -27,15 +27,15 @@ export default class imgModal {
                 return parseFloat(scale)
             })()
             if (e.wheelDelta > 0) {
-                if (scale > 2) {
+                if (scale > 10) {
                     return
                 }
-                img.style.transform = `scale(${scale + .2})`
+                img.style.transform = `scale(${scale + 0.2})`
             } else {
                 if (scale <= 1) {
                     return
                 }
-                img.style.transform = `scale(${scale - .2})`
+                img.style.transform = `scale(${scale - 0.2})`
             }
         })
 

@@ -224,7 +224,7 @@ const createWindow = () => {
     })
 
     ipcMain.handle('checkUpdate', () => {
-        const version = process.env.npm_package_version
+        const version = ''
         if (isDev) {
             return ([version, 'dev'])
         }
@@ -276,6 +276,10 @@ app.whenReady().then(() => {
     app.setAppUserModelId('com.babble.app')
 
     ipcMain.handle('notify', (events, string) => {
+        const focus = window.isFocused() ? true : false
+        if (focus) {
+            return
+        }
         const n = new Notification({
             title: 'New Message',
             body: string,
