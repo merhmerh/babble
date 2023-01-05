@@ -1,6 +1,6 @@
 {
   "name": "babble",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Babble",
   "main": "main.js",
   "scripts": {
