@@ -9,13 +9,8 @@ import imgModal from './modal';
 const AColorPicker = require('a-color-picker');
 
 
-//change log
-//timestamp in hh:ss format (tbd: allow toggle to h:ss a)
-//notification, to prevent spam, new notification will only be sent after 5s from last notification.
-//new message alert is shown, if window is not scroll to bottom when recieving message.
-//minimize
-//when close, minimize to tray, click tray icon to show again
-//Right click tray to exit
+//autoscroll down check
+
 
 export function startChat(user) {
 
@@ -422,10 +417,11 @@ export function startChat(user) {
                 let html = ''
 
                 data.attachment.forEach(item => {
+                    const ext = item.name.split('.').pop()
 
                     const attachement_html = (() => {
                         const html = {
-                            image: `<img src="${item.downloadUrl}">`,
+                            image: `<img data-img-type="${ext}" src="${item.downloadUrl}">`,
                             video: `<video controls><source src="${item.data}"></video>`,
                             code: `<a href="${item.downloadUrl}" download="${item.name}" class="file">
                         <div class="icon mso">code</div>
@@ -540,6 +536,13 @@ export function startChat(user) {
                 })
 
                 img.addEventListener('click', (e) => {
+                    if (img.getAttribute('data-img-type') == 'gif') {
+                        const newImg = document.createElement('img')
+                        newImg.src = contextMenu.selector.src
+                        img.src = newImg.src
+                        return
+                    }
+
                     const modal = new imgModal({
                         src: contextMenu.selector.src
                     })
@@ -685,6 +688,9 @@ export function startChat(user) {
 
     // document.getElementById('menu_setting').click()
 
+    ipc.receive('focus', () => {
+        scrollToBottom()
+    })
 }
 
 

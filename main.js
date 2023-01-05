@@ -240,18 +240,18 @@ const createWindow = () => {
         })
     })
 
-    // if (!isDev) {
-    //     window.once('ready-to-show', () => {
-    //         autoUpdater.checkForUpdatesAndNotify()
-    //         autoUpdater.on('update-available', () => {
-    //             window.webContents.send('haveUpdate', 'update available')
-    //         });
+    if (!isDev) {
+        window.once('ready-to-show', () => {
+            autoUpdater.checkForUpdatesAndNotify()
+            autoUpdater.on('update-available', () => {
+                window.webContents.send('haveUpdate', 'update available')
+            });
 
-    //         autoUpdater.on('update-not-available', () => {
-    //             window.webContents.send('haveUpdate', 'latest')
-    //         })
-    //     })
-    // }
+            autoUpdater.on('update-not-available', () => {
+                window.webContents.send('haveUpdate', 'latest')
+            })
+        })
+    }
 
     return window
 }
